@@ -9,8 +9,8 @@ export default function Dashboard() {
       <Head>
         <title>BarberPro - Minha Barbearia</title>
       </Head>
-      <Flex>
-        <Text color="black">Bem vindo ao dashboard</Text>
+      <Flex bg="barber.900" h="100vh">
+        <Text color="white">Bem vindo ao dashboard</Text>
       </Flex>
     </>
   );
