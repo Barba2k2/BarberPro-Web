@@ -1,9 +1,54 @@
+import { useContext, useState } from "react";
 import Head from "next/head";
 import { Flex, Text, Heading, Box, Input, Button } from "@chakra-ui/react";
 import { Sidebar } from "@/src/components/sidebar";
-import Link from "next/link";
 
-export default function Profile() {
+import Link from "next/link";
+import { canSSRAuth } from "@/src/utils/canSSRAuth";
+import { AuthContext } from "@/src/context/AuthContext";
+import { setupAPIClient } from "@/src/services/api";
+
+interface UserProps {
+  id: string;
+  name: string;
+  email: string;
+  endereco: string | null;
+}
+
+interface ProfileProps {
+  user: UserProps;
+  premium: boolean;
+}
+
+export default function Profile({ user, premium }: ProfileProps) {
+  const { logoutUser } = useContext(AuthContext);
+
+  const [name, setName] = useState(user && user?.name);
+  const [endereco, setEndereco] = useState(
+    user?.endereco ? user?.endereco : ""
+  );
+
+  async function handleLogout() {
+    await logoutUser();
+  }
+
+  async function handleUpdateUser() {
+    if (name === "") {
+      return;
+    }
+
+    try {
+      const apiClient = setupAPIClient();
+      await apiClient.put("/users", {
+        name: name,
+        endereco: endereco,
+      });
+      alert("Dados atualizados com sucesso!!");
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   return (
     <>
       <Head>
@@ -48,6 +93,8 @@ export default function Profile() {
                 size={"lg"}
                 type="text"
                 mb={6}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
               {/* Local */}
               <Text color="white" mb={2} fontSize={"xl"} fontWeight={"bold"}>
@@ -61,6 +108,8 @@ export default function Profile() {
                 size={"lg"}
                 type="text"
                 mb={6}
+                value={endereco}
+                onChange={(e) => setEndereco(e.target.value)}
               />
 
               <Text
@@ -82,9 +131,14 @@ export default function Profile() {
                 alignItems={"center"}
                 justifyContent={"space-between"}
               >
-                <Text p={2} fontSize={"lg"} color="#4dffb4">
-                  Plano Grátis
+                <Text
+                  p={2}
+                  fontSize={"lg"}
+                  color={premium ? "#FBA931" : "#4dffb4"}
+                >
+                  Plano {premium ? "Premium" : "Gratis"}
                 </Text>
+
                 <Link href={"/planos"}>
                   <Box
                     cursor={"pointer"}
@@ -110,6 +164,7 @@ export default function Profile() {
                 textColor={"white"}
                 fontSize={22}
                 fontWeight={"w500"}
+                onClick={handleUpdateUser}
               >
                 Salvar
               </Button>
@@ -126,7 +181,10 @@ export default function Profile() {
                 _hover={{ bg: "transparent" }}
                 fontSize={22}
                 fontWeight={"W500"}
-              >Sair da Conta</Button>
+                onClick={handleLogout}
+              >
+                Sair da Conta
+              </Button>
             </Flex>
           </Flex>
         </Flex>
@@ -134,3 +192,34 @@ export default function Profile() {
     </>
   );
 }
+
+export const getServerSideProps = canSSRAuth(async (ctx) => {
+  try {
+    const apiClient = setupAPIClient(ctx);
+    const response = await apiClient.get("/me");
+
+    const user = {
+      id: response.data.id,
+      name: response.data.name,
+      email: response.data.email,
+      endereco: response.data?.endereco,
+    };
+
+    return {
+      props: {
+        user: user,
+        premium:
+          response.data?.subscriptions?.status === "active" ? true : false,
+      },
+    };
+  } catch (err) {
+    console.log(err);
+
+    return {
+      redirect: {
+        destination: "/dashboard",
+        permanent: false,
+      },
+    };
+  }
+});
