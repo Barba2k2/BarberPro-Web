@@ -45,7 +45,7 @@ export default function Haircuts() {
               Modelos de Corte
             </Heading>
 
-            <Link href="/haricuts/new">
+            <Link href="/haircuts/new">
               <Button>Cadastar Novo</Button>
             </Link>
 
@@ -63,13 +63,14 @@ export default function Haircuts() {
               w={"100%"}
               p={4}
               bg="barber.400"
-              direction="row"
+              direction={isMobile ? "column" : "row"}
+              align={isMobile ? "flex-start" : "center"}
               rounded="4"
               mb={2}
               justifyContent="space-between"
 
             >
-              <Flex direction="row" alignItems="center" justifyContent="center">
+              <Flex mb={isMobile ? 2 : 0} direction="row" alignItems="center" justifyContent="center">
                 <IoMdPricetag size={28} color="#FBA931" />
                 <Text fontWeight="bold" color="#FBA931" ml={2} mr={2} noOfLines={2}>
                   Corte Completo
