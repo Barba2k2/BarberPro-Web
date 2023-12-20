@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Head from "next/head";
 import { Sidebar } from "@/src/components/sidebar";
 
@@ -12,18 +13,40 @@ import {
 
 import Link from "next/link";
 import { FiChevronLeft } from "react-icons/fi";
+import Router from "next/router";
 
 import { canSSRAuth } from "@/src/utils/canSSRAuth";
 import { setupAPIClient } from "@/src/services/api";
-import { redirect } from "next/dist/server/api-utils";
 
-interface NewHaircutProps{
+interface NewHaircutProps {
   subscription: boolean;
   count: number;
 }
 
-export default function NewHaircut({subscritpion, count}) {
+export default function NewHaircut({ subscription, count }: NewHaircutProps) {
   const [isMobile] = useMediaQuery("(max-width: 500px)");
+
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+
+  async function handleRegister() {
+    if(name === '' || price === '') return;
+
+    try {
+
+      const apiClient = setupAPIClient()
+      await apiClient.post('/haircut', {
+        name: name,
+        price: Number(price),
+      })
+
+      Router.push('/haircuts')
+
+    } catch (err) {
+      console.log(err)
+      alert("Erro ao cadastrar o corte.")
+    }
+  }
 
   return (
     <>
@@ -89,6 +112,8 @@ export default function NewHaircut({subscritpion, count}) {
               textColor="white"
               bg="gray.900"
               mb={4}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
 
             <Input
@@ -99,9 +124,12 @@ export default function NewHaircut({subscritpion, count}) {
               textColor="white"
               bg="gray.900"
               mb={4}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
             />
 
             <Button
+              onClick={handleRegister}
               w="85%"
               size="lg"
               color="gray.900"
@@ -109,16 +137,23 @@ export default function NewHaircut({subscritpion, count}) {
               bg="button.cta"
               _hover={{ bg: "#FFb13E" }}
               fontWeight="bold"
-              disabled={!subscritpion && count >= 3}
+              disabled={!subscription && count >= 3}
             >
               Cadastrar
             </Button>
 
-            {!subscritpion && count >= 3 && (
+            {!subscription && count >= 3 && (
               <Flex direction="row" align="center" justifyContent="center">
                 <Text>Você atingiu seu limite de cadastro de cortes.</Text>
                 <Link href="/planos">
-                  <Text fontWeight="bold" color="#31FB6A" cursor="pointer" ml={1}>Seja premium</Text>
+                  <Text
+                    fontWeight="bold"
+                    color="#31FB6A"
+                    cursor="pointer"
+                    ml={1}
+                  >
+                    Seja premium
+                  </Text>
                 </Link>
               </Flex>
             )}
