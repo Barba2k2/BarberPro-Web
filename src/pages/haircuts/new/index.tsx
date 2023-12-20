@@ -144,15 +144,16 @@ export default function NewHaircut({ subscription, count }: NewHaircutProps) {
 
             {!subscription && count >= 3 && (
               <Flex direction="row" align="center" justifyContent="center">
-                <Text>Você atingiu seu limite de cadastro de cortes.</Text>
+                <Text fontSize="20px" color='white'>Você atingiu seu limite de cadastro de cortes.</Text>
                 <Link href="/planos">
                   <Text
                     fontWeight="bold"
+                    fontSize="20px"
                     color="#31FB6A"
                     cursor="pointer"
-                    ml={1}
+                    ml={2}
                   >
-                    Seja premium
+                    Seja Premium
                   </Text>
                 </Link>
               </Flex>
