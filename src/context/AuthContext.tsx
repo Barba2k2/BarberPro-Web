@@ -17,7 +17,7 @@ interface UserProps {
   name: string;
   email: string;
   endereco: string | null;
-  subscritpions?: SubscriptionProps | null;
+  subscriptions?: SubscriptionProps | null;
 }
 
 interface SubscriptionProps {
@@ -63,13 +63,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api
         .get("/me")
         .then((reponse) => {
-          const { id, name, endereco, email, subscritpions } = reponse.data;
+          const { id, name, endereco, email, subscriptions } = reponse.data;
           setUser({
             id,
             name,
             email,
             endereco,
-            subscritpions,
+            subscriptions,
           });
         })
         .catch(() => {
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         password,
       });
 
-      const { id, name, token, subscritpions, endereco } = response.data;
+      const { id, name, token, subscriptions, endereco } = response.data;
 
       setCookie(undefined, "@barber.token", token, {
         maxAge: 60 * 60 * 24 * 30, //Expira em 1 mês
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         name,
         email,
         endereco,
-        subscritpions,
+        subscriptions,
       });
 
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
