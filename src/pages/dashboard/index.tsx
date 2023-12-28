@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Head from "next/head";
 import {
   Flex,
@@ -6,15 +7,65 @@ import {
   Button,
   Link as ChackraLink,
   useMediaQuery,
+  useDisclosure,
 } from "@chakra-ui/react";
 import Link from "next/link";
 import { IoMdPerson } from "react-icons/io";
 
 import { canSSRAuth } from "@/src/utils/canSSRAuth";
 import { Sidebar } from "@/src/components/sidebar";
+import { setupAPIClient } from "@/src/services/api";
+import { ModalInfo } from "@/src/components/modal";
 
-export default function Dashboard() {
+export interface ScheduleItem {
+  id: string;
+  customer: string;
+  haircut: {
+    id: string;
+    name: string;
+    price: string | number;
+    user_id: string;
+  };
+}
+
+interface DashboardProps {
+  schedule: ScheduleItem[];
+}
+
+export default function Dashboard({ schedule }: DashboardProps) {
+  const [list, setList] = useState(schedule);
+  const [service, setService] = useState<ScheduleItem>();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   const [isMobile] = useMediaQuery("(max-width: 500px)");
+
+  function handleOpenModal(item: ScheduleItem) {
+    setService(item);
+    onOpen();
+  }
+
+  async function handleFinish(id: string) {
+    try {
+      const apiClient = setupAPIClient();
+      await apiClient.delete("/schedule", {
+        params: {
+          schedule_id: id,
+        },
+      });
+
+      const filterItem = list.filter((item) => {
+        return item?.id !== id;
+      });
+
+      setList(filterItem);
+      onClose();
+    } catch (err) {
+      console.log(err);
+      onClose();
+      alert("Erro ao finalizar esse serviço! =/");
+    }
+  }
 
   return (
     <>
@@ -34,50 +85,79 @@ export default function Dashboard() {
               </Button>
             </Link>
           </Flex>
-          {/* Peoples */}
-          <ChackraLink
-            w="100%"
-            m={0}
-            p={0}
-            mt={1}
-            bg="transparent"
-            style={{ textDecoration: "none" }}
-          >
-            <Flex
+
+          {list.map((item) => (
+            <ChackraLink
+              onClick={() => handleOpenModal(item)}
+              key={item?.id}
               w="100%"
-              direction={isMobile ? "column" : "row"}
-              p={4}
-              rounded={4}
-              mb={4}
-              bg="barber.400"
-              justify="space-between"
-              align={isMobile ? "flex-start" : "center"}
+              m={0}
+              p={0}
+              mt={1}
+              bg="transparent"
+              style={{ textDecoration: "none" }}
             >
-              {/* Person Name */}
               <Flex
-                direction="row"
-                mb={isMobile ? 2 : 0}
-                align="center"
-                justify="center"
+                w="100%"
+                direction={isMobile ? "column" : "row"}
+                p={4}
+                rounded={4}
+                mb={4}
+                bg="barber.400"
+                justify="space-between"
+                align={isMobile ? "flex-start" : "center"}
               >
-                <IoMdPerson size={28} color="#F1F1F1" />
-                <Text color="white" fontWeight="bold" ml={4} noOfLines={2}>
-                  Barba Tech
+                {/* Person Name */}
+                <Flex
+                  direction="row"
+                  mb={isMobile ? 2 : 0}
+                  align="center"
+                  justify="center"
+                >
+                  <IoMdPerson size={28} color="#F1F1F1" />
+                  <Text color="white" fontWeight="bold" ml={4} noOfLines={2}>
+                    {item?.customer}
+                  </Text>
+                </Flex>
+                {/* Haircut choosed */}
+                <Text color="white" fontWeight="bold" mb={isMobile ? 2 : 0}>
+                  {item?.haircut?.name}
+                </Text>
+                <Text color="white" fontWeight="bold" mb={isMobile ? 2 : 0}>
+                  R$ {item?.haircut?.price}
                 </Text>
               </Flex>
-              {/* Haircut choosed */}
-              <Text color="white" fontWeight="bold" mb={isMobile ? 2 : 0}>Corte Completo</Text>
-              <Text color="white" fontWeight="bold" mb={isMobile ? 2 : 0}>R$ 59,90</Text>
-            </Flex>
-          </ChackraLink>
+            </ChackraLink>
+          ))}
         </Flex>
       </Sidebar>
+      <ModalInfo
+        isOpen={isOpen}
+        onOpen={onOpen}
+        onClose={onClose}
+        data={service}
+        finishService={() => handleFinish(service?.id)}
+      />
     </>
   );
 }
 
 export const getServerSideProps = canSSRAuth(async (ctx) => {
-  return {
-    props: {},
-  };
+  try {
+    const apiClient = setupAPIClient(ctx);
+    const response = await apiClient.get("/schedule");
+
+    return {
+      props: {
+        schedule: response.data,
+      },
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      props: {
+        schedule: [],
+      },
+    };
+  }
 });
