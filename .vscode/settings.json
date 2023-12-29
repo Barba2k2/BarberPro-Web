@@ -1,5 +1,6 @@
 {
   "gitlens.outputLevel": "debug",
   "scm.providerCountBadge": "visible",
-  "gitlens.ai.experimental.provider": "openai"
+  "gitlens.ai.experimental.provider": "openai",
+  "gitlens.ai.experimental.generateCommitMessage.enabled": true
 }
