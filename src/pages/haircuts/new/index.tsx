@@ -71,8 +71,9 @@ export default function NewHaircut({ subscription, count }: NewHaircutProps) {
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
-                bg="barber.400"
-                textColor="white"
+                bg="gray.700"
+                textColor="#FFF"
+                _hover={{ background: "gray.700" }}
                 mr={4}
               >
                 <FiChevronLeft size={24} color="white" />

@@ -2,8 +2,14 @@ import Head from "next/head";
 import { Button, Flex, Heading, Text, useMediaQuery } from "@chakra-ui/react";
 
 import { Sidebar } from "@/src/components/sidebar";
+import { canSSRAuth } from "@/src/utils/canSSRAuth";
+import { setupAPIClient } from "@/src/services/api";
 
-export default function Planos() {
+interface PlanoProps {
+  premium: boolean;
+}
+
+export default function Planos({ premium }: PlanoProps) {
   const [isMobile] = useMediaQuery("(max-width: 500px)");
 
   return (
@@ -49,7 +55,7 @@ export default function Planos() {
                 mt={2}
                 mb={4}
               >
-                Plano Grátis
+                Gratuito
               </Heading>
               {/* Sub Infos */}
               <Text
@@ -154,15 +160,28 @@ export default function Planos() {
                 R$ 19,99/mês.
               </Text>
               <Button
-                bg="button.cta"
+                bg={premium ? "transparent" : "button.cta"}
+                disabled={premium ? true : false}
+                _hover={{cursor: premium ? "not-allowed" : "pointer"}}
                 m={2}
                 color="white"
                 onClick={() => {
                   alert("OLHA EU AQUIII");
                 }}
               >
-                VIRAR PREMIUM
+                {premium ? "VOCÊ JA É PREMIUM" : "VIRAR PREMIUM"}
               </Button>
+              {premium && (
+                <Button
+                  m={2}
+                  bg="white"
+                  color="barber.900"
+                  fontWeight="bold"
+                  onClick={() => {}}
+                >
+                  ALTERAR ASSINATURA
+                </Button>
+              )}
             </Flex>
           </Flex>
         </Flex>
@@ -170,3 +189,28 @@ export default function Planos() {
     </>
   );
 }
+
+export const getServerSideProps = canSSRAuth(async (ctx) => {
+  try {
+    const apiClient = setupAPIClient(ctx);
+    const response = await apiClient.get("/me");
+
+    console.log(response.data);
+
+    return {
+      props: {
+        premium:
+          response.data?.subscriptions?.status === "active" ? true : false,
+      },
+    };
+  } catch (err) {
+    console.log(err);
+
+    return {
+      redirect: {
+        destination: "/dashboard",
+        permanent: false,
+      },
+    };
+  }
+});

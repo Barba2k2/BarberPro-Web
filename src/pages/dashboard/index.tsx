@@ -80,7 +80,11 @@ export default function Dashboard({ schedule }: DashboardProps) {
               Agenda
             </Heading>
             <Link href="/new">
-              <Button bg="barber.400" textColor="#FFF">
+              <Button
+                bg="gray.700"
+                textColor="#FFF"
+                _hover={{ background: "gray.700" }}
+              >
                 Registrar
               </Button>
             </Link>
